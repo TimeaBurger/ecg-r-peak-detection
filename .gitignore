@@ -7,3 +7,6 @@
 # Python cache files
 __pycache__/
 *.pyc
+
+# ECG data (downloaded from PhysioNet, not stored in the repo)
+data/
