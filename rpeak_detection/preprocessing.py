@@ -5,6 +5,9 @@ according to the Pan-Tompkins algorithm.
 """
 
 import numpy as np
+from scipy.signal import resample_poly
+
+TARGET_SAMPLING_RATE = 200
 
 
 def apply_low_pass_filter(signal):
@@ -57,3 +60,10 @@ def apply_high_pass_filter(signal):
                               + input_16_before - input_17_before
                               + input_32_before / 32)
     return filtered_signal
+
+
+def resample_signal(signal, sampling_rate):
+    """Resample the signal to the target sampling rate of 200 Hz."""
+    resampled_signal = resample_poly(signal, up=TARGET_SAMPLING_RATE,
+                                     down=sampling_rate)
+    return resampled_signal
