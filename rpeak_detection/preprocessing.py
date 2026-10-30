@@ -31,3 +31,29 @@ def apply_low_pass_filter(signal):
                               - output_2_before - 2 * input_6_before
                               + input_12_before)
     return filtered_signal
+
+
+def apply_high_pass_filter(signal):
+    """Apply the high-pass filter to the signal."""
+    filtered_signal = np.zeros(len(signal))
+    for n in range(len(signal)):
+        if n >= 1:
+            output_1_before = filtered_signal[n - 1]
+        else:
+            output_1_before = 0
+        if n >= 16:
+            input_16_before = signal[n - 16]
+        else:
+            input_16_before = 0
+        if n >= 17:
+            input_17_before = signal[n - 17]
+        else:
+            input_17_before = 0
+        if n >= 32:
+            input_32_before = signal[n - 32]
+        else:
+            input_32_before = 0
+        filtered_signal[n] = (output_1_before - signal[n] / 32
+                              + input_16_before - input_17_before
+                              + input_32_before / 32)
+    return filtered_signal
