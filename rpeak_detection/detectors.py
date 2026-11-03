@@ -4,6 +4,8 @@ Provide a base class for R-peak detectors and two implementations:
 a simple threshold-based baseline and the Pan-Tompkins algorithm.
 """
 
+import numpy as np
+
 
 class RPeakDetector:
     """Represent a generic R-peak detector."""
@@ -18,3 +20,26 @@ class RPeakDetector:
         raise NotImplementedError(
             "Subclasses must implement the detect_r_peaks method."
         )
+
+
+class ThresholdBasedDetector(RPeakDetector):
+    """Represent an R-peak detector based on a fixed amplitude threshold."""
+
+    def __init__(self, threshold_ratio=0.6):
+        self.threshold_ratio = threshold_ratio
+
+    def detect_r_peaks(self, signal, sampling_rate):
+        """Detect R-peaks using a threshold relative to the signal maximum."""
+        threshold = self.threshold_ratio * np.max(signal)
+        above_threshold = np.array(signal) > threshold
+        r_peak_positions = []
+        for n in range(1, len(above_threshold)):
+            if above_threshold[n] and not above_threshold[n - 1]:
+                peak_start = n
+            if not above_threshold[n] and above_threshold[n - 1]:
+                peak_end = n
+                r_peak_position = (
+                    np.argmax(signal[peak_start:peak_end]) + peak_start
+                )
+                r_peak_positions.append(r_peak_position)
+        return np.array(r_peak_positions)
