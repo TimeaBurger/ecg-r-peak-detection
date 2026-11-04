@@ -61,3 +61,34 @@ def select_beat_positions(annotated_positions, annotated_symbols):
         if annotated_symbols[n] in BEAT_SYMBOLS:
             beat_positions.append(annotated_positions[n])
     return np.array(beat_positions)
+
+
+def evaluate_detection(detected_positions, annotated_positions,
+                       annotated_symbols, sampling_rate, tolerance_ms=150):
+    """Evaluate the detected R-peaks against the annotated beats.
+
+    Return an EvaluationResult with the counts of true positives,
+    false positives and false negatives.
+    """
+    beat_positions = select_beat_positions(annotated_positions,
+                                           annotated_symbols)
+    tolerance_samples = round(sampling_rate * (tolerance_ms / 1000))
+    is_used = [False] * len(detected_positions)
+    true_positives = 0
+    false_negatives = 0
+    for beat_position in beat_positions:
+        best_index = None
+        best_distance = tolerance_samples + 1
+        for i in range(len(detected_positions)):
+            distance = abs(beat_position - detected_positions[i])
+            if not is_used[i] and distance <= tolerance_samples:
+                if distance < best_distance:
+                    best_index = i
+                    best_distance = distance
+        if best_index is None:
+            false_negatives += 1
+        else:
+            is_used[best_index] = True
+            true_positives += 1
+    false_positives = is_used.count(False)
+    return EvaluationResult(true_positives, false_positives, false_negatives)
