@@ -5,6 +5,13 @@ Count true positives, false positives and false negatives. Compute sensitivity,
 positive predictive value and F1 score from them.
 """
 
+import numpy as np
+
+# Annotation symbols that represent beats
+# as listed in the MIT-BIH Arrhythmia Database directory
+BEAT_SYMBOLS = {"N", "L", "R", "A", "a", "J", "S", "V", "F", "e", "j", "E",
+                "/", "f", "Q"}
+
 
 class EvaluationResult:
     """Represent the evaluation result for a single ECG recording."""
@@ -45,3 +52,12 @@ class EvaluationResult:
             return float("nan")
         else:
             return 2 * self.true_positives / denominator
+
+
+def select_beat_positions(annotated_positions, annotated_symbols):
+    """Return the positions of the annotations that represent beats."""
+    beat_positions = []
+    for n in range(len(annotated_positions)):
+        if annotated_symbols[n] in BEAT_SYMBOLS:
+            beat_positions.append(annotated_positions[n])
+    return np.array(beat_positions)
