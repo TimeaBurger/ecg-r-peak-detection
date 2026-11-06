@@ -100,20 +100,23 @@ class ThresholdBasedDetector(RPeakDetector):
 class PanTompkinsDetector(RPeakDetector):
     """Represent an R-peak detector based on the Pan-Tompkins algorithm."""
 
-    def __init__(self, threshold_ratio=0.6):
-        self.threshold_ratio = threshold_ratio
-
     def detect_r_peaks(self, signal, sampling_rate):
-        """."""
+        """Detect R-peaks using the Pan-Tompkins algorithm."""
         resampled_signal = resample_signal(signal, sampling_rate)
         low_passed_signal = apply_low_pass_filter(resampled_signal)
         high_passed_signal = apply_high_pass_filter(low_passed_signal)
         derivative_signal = compute_derivative(high_passed_signal)
         squared_signal = square_signal(derivative_signal)
         integrated_signal = apply_moving_window_integration(squared_signal)
-        threshold = self.threshold_ratio * np.max(integrated_signal)
-        peak_positions = locate_peaks_above_threshold(integrated_signal,
-                                                      threshold)
+        search_radius = round(TARGET_SAMPLING_RATE
+                              * (REFRACTORY_PERIOD_MS / 1000))
+        learning_samples = round(TARGET_SAMPLING_RATE
+                                 * (LEARNING_PHASE_MS / 1000))
+        candidate_positions = locate_candidate_peaks(integrated_signal,
+                                                     search_radius)
+        peak_positions = select_signal_peaks(integrated_signal,
+                                             candidate_positions,
+                                             learning_samples)
         scale_factor = sampling_rate / TARGET_SAMPLING_RATE
         r_peak_positions = np.round(peak_positions * scale_factor).astype(int)
         return r_peak_positions
