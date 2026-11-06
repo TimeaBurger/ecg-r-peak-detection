@@ -87,6 +87,12 @@ def compute_derivative(signal):
     return computed_derivative
 
 
+def square_signal(signal):
+    """Compute the square of the signal."""
+    squared_signal = np.array(signal) ** 2
+    return squared_signal
+
+
 def resample_signal(signal, sampling_rate):
     """Resample the signal to the target sampling rate of 200 Hz."""
     resampled_signal = resample_poly(signal, up=TARGET_SAMPLING_RATE,
