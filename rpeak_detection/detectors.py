@@ -7,6 +7,22 @@ a simple threshold-based baseline and the Pan-Tompkins algorithm.
 import numpy as np
 
 
+def locate_peaks_above_threshold(signal, threshold):
+    """Locate the highest sample of each region above the threshold."""
+    above_threshold = np.array(signal) > threshold
+    r_peak_positions = []
+    for n in range(1, len(above_threshold)):
+        if above_threshold[n] and not above_threshold[n - 1]:
+            peak_start = n
+        if not above_threshold[n] and above_threshold[n - 1]:
+            peak_end = n
+            r_peak_position = (
+                np.argmax(signal[peak_start:peak_end]) + peak_start
+            )
+            r_peak_positions.append(r_peak_position)
+    return np.array(r_peak_positions)
+
+
 class RPeakDetector:
     """Represent a generic R-peak detector."""
 
@@ -31,15 +47,4 @@ class ThresholdBasedDetector(RPeakDetector):
     def detect_r_peaks(self, signal, sampling_rate):
         """Detect R-peaks using a threshold relative to the signal maximum."""
         threshold = self.threshold_ratio * np.max(signal)
-        above_threshold = np.array(signal) > threshold
-        r_peak_positions = []
-        for n in range(1, len(above_threshold)):
-            if above_threshold[n] and not above_threshold[n - 1]:
-                peak_start = n
-            if not above_threshold[n] and above_threshold[n - 1]:
-                peak_end = n
-                r_peak_position = (
-                    np.argmax(signal[peak_start:peak_end]) + peak_start
-                )
-                r_peak_positions.append(r_peak_position)
-        return np.array(r_peak_positions)
+        return locate_peaks_above_threshold(signal, threshold)
