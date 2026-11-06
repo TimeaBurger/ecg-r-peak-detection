@@ -15,6 +15,7 @@ from rpeak_detection.preprocessing import (resample_signal,
 
 REFRACTORY_PERIOD_MS = 200  # refractory period from Pan and Tompkins (1985)
 LEARNING_PHASE_MS = 2000  # learning phase 1 from Pan and Tompkins (1985)
+PROCESSING_DELAY = 35.5  # samples at 200 Hz: 5 + 16 + 14.5 (impulse tests)
 
 
 def locate_peaks_above_threshold(signal, threshold):
@@ -118,5 +119,7 @@ class PanTompkinsDetector(RPeakDetector):
                                              candidate_positions,
                                              learning_samples)
         scale_factor = sampling_rate / TARGET_SAMPLING_RATE
-        r_peak_positions = np.round(peak_positions * scale_factor).astype(int)
+        corrected_positions = peak_positions - PROCESSING_DELAY
+        r_peak_positions = np.round(corrected_positions
+                                    * scale_factor).astype(int)
         return r_peak_positions
