@@ -1,6 +1,7 @@
 """Preprocess ECG signals for R-peak detection.
 
-Resample the signals to 200 Hz and apply low-pass and high-pass filters
+Resample the signals to 200 Hz and apply low-pass and high-pass filters,
+as well as the derivative, squaring and moving-window integration stages
 according to the Pan-Tompkins algorithm.
 """
 
@@ -8,6 +9,7 @@ import numpy as np
 from scipy.signal import resample_poly
 
 TARGET_SAMPLING_RATE = 200
+WINDOW_SIZE = 30  # samples (150 ms at 200 Hz), Pan and Tompkins (1985)
 
 
 def apply_low_pass_filter(signal):
@@ -91,6 +93,18 @@ def square_signal(signal):
     """Compute the square of the signal."""
     squared_signal = np.array(signal) ** 2
     return squared_signal
+
+
+def apply_moving_window_integration(signal):
+    """Apply the moving-window integration to the signal."""
+    integrated_signal = np.zeros(len(signal))
+    for n in range(len(signal)):
+        if n - (WINDOW_SIZE - 1) >= 0:
+            window_start = n - (WINDOW_SIZE - 1)
+        else:
+            window_start = 0
+        integrated_signal[n] = np.sum(signal[window_start:n + 1]) / WINDOW_SIZE
+    return integrated_signal
 
 
 def resample_signal(signal, sampling_rate):
