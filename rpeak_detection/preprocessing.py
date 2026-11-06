@@ -62,6 +62,31 @@ def apply_high_pass_filter(signal):
     return filtered_signal
 
 
+def compute_derivative(signal):
+    """Compute the derivative of the signal."""
+    computed_derivative = np.zeros(len(signal))
+    for n in range(len(signal)):
+        if n >= 2:
+            input_2_before = signal[n - 2]
+        else:
+            input_2_before = 0
+        if n >= 1:
+            input_1_before = signal[n - 1]
+        else:
+            input_1_before = 0
+        if n + 1 <= len(signal) - 1:
+            input_1_after = signal[n + 1]
+        else:
+            input_1_after = 0
+        if n + 2 <= len(signal) - 1:
+            input_2_after = signal[n + 2]
+        else:
+            input_2_after = 0
+        computed_derivative[n] = (-input_2_before - 2 * input_1_before
+                                  + 2 * input_1_after + input_2_after) / 8
+    return computed_derivative
+
+
 def resample_signal(signal, sampling_rate):
     """Resample the signal to the target sampling rate of 200 Hz."""
     resampled_signal = resample_poly(signal, up=TARGET_SAMPLING_RATE,
