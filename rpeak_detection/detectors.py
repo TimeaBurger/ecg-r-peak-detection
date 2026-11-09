@@ -70,6 +70,22 @@ def select_signal_peaks(signal, candidate_positions, learning_samples):
                                                   - noise_peak_estimate)
     return np.array(signal_peak_positions)
 
+def search_back(signal, candidate_positions, previous_peak_position,
+                current_peak_position, threshold):
+    """Return the highest candidate between two peaks above half the threshold.
+
+    Return None if no candidate exceeds half the threshold.
+    """
+    search_threshold = 0.5 * threshold
+    best_position = None
+    best_value = search_threshold
+    for position in candidate_positions:
+        if (previous_peak_position < position < current_peak_position
+                and signal[position] > best_value):
+            best_position = position
+            best_value = signal[position]
+    return best_position
+
 
 class RPeakDetector:
     """Represent a generic R-peak detector."""
