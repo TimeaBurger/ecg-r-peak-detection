@@ -16,6 +16,10 @@ from rpeak_detection.preprocessing import (resample_signal,
 REFRACTORY_PERIOD_MS = 200  # refractory period from Pan and Tompkins (1985)
 LEARNING_PHASE_MS = 2000  # learning phase 1 from Pan and Tompkins (1985)
 PROCESSING_DELAY = 35.5  # samples at 200 Hz: 5 + 16 + 14.5 (impulse tests)
+RR_AVERAGE_LENGTH = 8  # RR AVERAGE2 length, Pan and Tompkins (1985), Eq. 25
+RR_LOW_LIMIT = 0.92  # RR LOW LIMIT, Pan and Tompkins (1985), Eq. 26
+RR_HIGH_LIMIT = 1.16  # RR HIGH LIMIT, Pan and Tompkins (1985), Eq. 27
+RR_MISSED_LIMIT = 1.66  # RR MISSED LIMIT, Pan and Tompkins (1985), Eq. 28
 
 
 def locate_peaks_above_threshold(signal, threshold):
@@ -57,9 +61,28 @@ def select_signal_peaks(signal, candidate_positions, learning_samples):
     threshold = noise_peak_estimate + 0.25 * (signal_peak_estimate
                                               - noise_peak_estimate)
     signal_peak_positions = []
+    rr_intervals = []
+    rr_average = None
     for position in candidate_positions:
         peak_value = signal[position]
         if peak_value > threshold:
+            if len(signal_peak_positions) > 0:
+                rr_interval = position - signal_peak_positions[-1]
+                if (rr_average is not None
+                        and rr_interval > RR_MISSED_LIMIT * rr_average):
+                    missed_position = search_back(
+                        signal, candidate_positions, signal_peak_positions[-1],
+                        position, threshold)
+                    if missed_position is not None:
+                        signal_peak_positions.append(missed_position)
+                        signal_peak_estimate = (0.25 * signal[missed_position]
+                                                + 0.75 * signal_peak_estimate)
+                        rr_interval = position - signal_peak_positions[-1]
+                if (rr_average is None
+                        or RR_LOW_LIMIT * rr_average <= rr_interval
+                        <= RR_HIGH_LIMIT * rr_average):
+                    rr_intervals.append(rr_interval)
+                    rr_average = np.mean(rr_intervals[-RR_AVERAGE_LENGTH:])
             signal_peak_positions.append(position)
             signal_peak_estimate = (0.125 * peak_value
                                     + 0.875 * signal_peak_estimate)
