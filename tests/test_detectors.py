@@ -7,7 +7,7 @@ import numpy as np
 from rpeak_detection.detectors import (RPeakDetector, ThresholdBasedDetector,
                                       locate_candidate_peaks,
                                       select_signal_peaks,
-                                      refine_peak_positions)
+                                      refine_peak_positions, search_back)
 
 
 class TestRPeakDetector(unittest.TestCase):
@@ -47,6 +47,46 @@ class TestSelectSignalPeaks(unittest.TestCase):
         signal_peak_positions = select_signal_peaks(signal,
                                                     candidate_positions, 4)
         np.testing.assert_array_equal(signal_peak_positions, np.array([6, 10]))
+
+    def test_find_missed_beat_with_search_back(self):
+        """Find a small beat between two peaks with the search-back."""
+        signal = np.zeros(60)
+        signal[[10, 20, 30, 40, 50]] = [9, 9, 2, 9, 9]
+        candidate_positions = np.array([10, 20, 30, 40, 50])
+        np.testing.assert_array_equal(
+            select_signal_peaks(signal, candidate_positions, 12),
+            np.array([10, 20, 30, 40, 50])
+        )
+
+    def test_skip_beat_below_half_threshold(self):
+        """Skip a beat below half the threshold even with the search-back."""
+        signal = np.zeros(60)
+        signal[[10, 20, 30, 40, 50]] = [9, 9, 2, 9, 9]
+        signal[30] = 1
+        candidate_positions = np.array([10, 20, 30, 40, 50])
+        np.testing.assert_array_equal(
+            select_signal_peaks(signal, candidate_positions, 12),
+            np.array([10, 20, 40, 50])
+        )
+
+
+class TestSearchBack(unittest.TestCase):
+
+    def test_return_candidate_above_half_threshold(self):
+        """Return the candidate above half the threshold."""
+        signal = np.zeros(60)
+        signal[[10, 20, 30, 40, 50]] = [9, 9, 2, 9, 9]
+        candidate_positions = np.array([10, 20, 30, 40, 50])
+        self.assertEqual(search_back(signal, candidate_positions,
+                                     20, 40, 3), 30)
+
+    def test_return_none_below_half_threshold(self):
+        """Return None if no candidate exceeds half the threshold."""
+        signal = np.zeros(60)
+        signal[[10, 20, 30, 40, 50]] = [9, 9, 2, 9, 9]
+        candidate_positions = np.array([10, 20, 30, 40, 50])
+        self.assertIsNone(search_back(signal, candidate_positions,
+                                      20, 40, 8))
 
 
 class TestRefinePeakPositions(unittest.TestCase):

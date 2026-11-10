@@ -94,6 +94,7 @@ def select_signal_peaks(signal, candidate_positions, learning_samples):
                                                   - noise_peak_estimate)
     return np.array(signal_peak_positions)
 
+
 def search_back(signal, candidate_positions, previous_peak_position,
                 current_peak_position, threshold):
     """Return the highest candidate between two peaks above half the threshold.
