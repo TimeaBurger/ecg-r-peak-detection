@@ -6,7 +6,8 @@ import numpy as np
 
 from rpeak_detection.detectors import (RPeakDetector, ThresholdBasedDetector,
                                       locate_candidate_peaks,
-                                      select_signal_peaks)
+                                      select_signal_peaks,
+                                      refine_peak_positions)
 
 
 class TestRPeakDetector(unittest.TestCase):
@@ -46,3 +47,22 @@ class TestSelectSignalPeaks(unittest.TestCase):
         signal_peak_positions = select_signal_peaks(signal,
                                                     candidate_positions, 4)
         np.testing.assert_array_equal(signal_peak_positions, np.array([6, 10]))
+
+
+class TestRefinePeakPositions(unittest.TestCase):
+
+    def test_move_to_highest_sample(self):
+        """Move each position to the highest sample within the radius."""
+        np.testing.assert_array_equal(
+            refine_peak_positions(
+                np.array([0, 1, 5, 2, 0, 0, 3, 9, 4, 0]),
+                np.array([3, 6]), 2), np.array([2, 7])
+        )
+
+    def test_clip_window_at_signal_start(self):
+        """Start the search window at zero near the signal start."""
+        np.testing.assert_array_equal(
+            refine_peak_positions(
+                np.array([0, 1, 5, 2, 0, 0, 3, 9, 4, 0]),
+                np.array([1]), 2), np.array([2])
+        )
