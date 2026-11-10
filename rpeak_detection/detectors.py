@@ -20,6 +20,7 @@ RR_AVERAGE_LENGTH = 8  # RR AVERAGE2 length, Pan and Tompkins (1985), Eq. 25
 RR_LOW_LIMIT = 0.92  # RR LOW LIMIT, Pan and Tompkins (1985), Eq. 26
 RR_HIGH_LIMIT = 1.16  # RR HIGH LIMIT, Pan and Tompkins (1985), Eq. 27
 RR_MISSED_LIMIT = 1.66  # RR MISSED LIMIT, Pan and Tompkins (1985), Eq. 28
+R_PEAK_SEARCH_RADIUS_MS = 50  # half of max. normal QRS, Dupre et al. (2005)
 
 
 def locate_peaks_above_threshold(signal, threshold):
@@ -110,6 +111,22 @@ def search_back(signal, candidate_positions, previous_peak_position,
     return best_position
 
 
+def refine_peak_positions(signal, peak_positions, search_radius):
+    """Move each peak position to the highest sample within the radius."""
+    refined_positions = []
+    for position in peak_positions:
+        if position - search_radius >= 0:
+            window_start = position - search_radius
+        else:
+            window_start = 0
+        window_end = position + search_radius + 1
+        peak_position = (
+            np.argmax(signal[window_start:window_end]) + window_start
+        )
+        refined_positions.append(peak_position)
+    return np.array(refined_positions)
+
+
 class RPeakDetector:
     """Represent a generic R-peak detector."""
 
@@ -161,4 +178,7 @@ class PanTompkinsDetector(RPeakDetector):
         corrected_positions = peak_positions - PROCESSING_DELAY
         r_peak_positions = np.round(corrected_positions
                                     * scale_factor).astype(int)
-        return r_peak_positions
+        r_peak_search_radius = round(sampling_rate
+                                     * (R_PEAK_SEARCH_RADIUS_MS / 1000))
+        return refine_peak_positions(signal,
+                                     r_peak_positions, r_peak_search_radius)
