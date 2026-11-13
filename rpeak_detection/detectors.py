@@ -54,6 +54,18 @@ def locate_candidate_peaks(signal, search_radius):
     return np.array(candidate_positions)
 
 
+def is_regular_rhythm(all_rr_intervals, rr_average):
+    """Return True if each of the recent RR intervals is within the limits."""
+    recent_rr_intervals = all_rr_intervals[-RR_AVERAGE_LENGTH:]
+    if len(recent_rr_intervals) < RR_AVERAGE_LENGTH:
+        return True
+    for rr_interval in recent_rr_intervals:
+        if not (RR_LOW_LIMIT * rr_average <= rr_interval
+                <= RR_HIGH_LIMIT * rr_average):
+            return False
+    return True
+
+
 def select_signal_peaks(signal, candidate_positions, learning_samples):
     """Select signal peaks from candidates using an adaptive threshold."""
     learning_phase = signal[:learning_samples]
@@ -63,6 +75,7 @@ def select_signal_peaks(signal, candidate_positions, learning_samples):
                                               - noise_peak_estimate)
     signal_peak_positions = []
     rr_intervals = []
+    all_rr_intervals = []
     rr_average = None
     for position in candidate_positions:
         peak_value = signal[position]
@@ -79,6 +92,7 @@ def select_signal_peaks(signal, candidate_positions, learning_samples):
                         signal_peak_estimate = (0.25 * signal[missed_position]
                                                 + 0.75 * signal_peak_estimate)
                         rr_interval = position - signal_peak_positions[-1]
+                all_rr_intervals.append(rr_interval)
                 if (rr_average is None
                         or RR_LOW_LIMIT * rr_average <= rr_interval
                         <= RR_HIGH_LIMIT * rr_average):
@@ -92,6 +106,8 @@ def select_signal_peaks(signal, candidate_positions, learning_samples):
                                    + 0.875 * noise_peak_estimate)
         threshold = noise_peak_estimate + 0.25 * (signal_peak_estimate
                                                   - noise_peak_estimate)
+        if not is_regular_rhythm(all_rr_intervals, rr_average):
+            threshold = 0.5 * threshold  # Pan and Tompkins, 1985, Eq. 22
     return np.array(signal_peak_positions)
 
 
