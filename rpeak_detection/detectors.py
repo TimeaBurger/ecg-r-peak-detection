@@ -21,6 +21,7 @@ RR_LOW_LIMIT = 0.92  # RR LOW LIMIT, Pan and Tompkins (1985), Eq. 26
 RR_HIGH_LIMIT = 1.16  # RR HIGH LIMIT, Pan and Tompkins (1985), Eq. 27
 RR_MISSED_LIMIT = 1.66  # RR MISSED LIMIT, Pan and Tompkins (1985), Eq. 28
 R_PEAK_SEARCH_RADIUS_MS = 50  # half of max. normal QRS, Dupre et al. (2005)
+THRESHOLD_RATIO = 0.3  # amplitude threshold of AF1, Friesen et al. (1990)
 
 
 def locate_peaks_above_threshold(signal, threshold):
@@ -162,7 +163,7 @@ class RPeakDetector:
 class ThresholdBasedDetector(RPeakDetector):
     """Represent an R-peak detector based on a fixed amplitude threshold."""
 
-    def __init__(self, threshold_ratio=0.6):
+    def __init__(self, threshold_ratio=THRESHOLD_RATIO):
         self.threshold_ratio = threshold_ratio
 
     def detect_r_peaks(self, signal, sampling_rate):
