@@ -1,13 +1,20 @@
 """Run the R-peak detection pipeline."""
 
-from rpeak_detection.hrv import (
-    compute_sdnn,
-    compute_rmssd,
-    compute_rr_intervals)
+import pandas as pd
 
+from rpeak_detection.data_loader import ECGRecordLoader
+from rpeak_detection.detectors import (
+    PanTompkinsDetector,
+    ThresholdBasedDetector,
+)
 from rpeak_detection.evaluation import (
     evaluate_detection,
     select_beat_positions,
+)
+from rpeak_detection.hrv import (
+    compute_rmssd,
+    compute_rr_intervals,
+    compute_sdnn,
 )
 
 # All records of the MIT-BIH Arrhythmia Database (Moody and Mark, 2005)
@@ -63,3 +70,25 @@ def evaluate_record(record, detector_name, detector):
         "reference_sdnn": reference_hrv["sdnn"],
         "reference_rmssd": reference_hrv["rmssd"],
     }
+
+
+def main():
+    """Evaluate both detectors on the selected records and print results."""
+    loader = ECGRecordLoader()
+    detectors = {
+        "baseline": ThresholdBasedDetector(),
+        "pan_tompkins": PanTompkinsDetector(),
+    }
+    record_names = select_record_names(ALL_RECORD_NAMES, PACED_RECORD_NAMES)
+    rows = []
+    for record_name in record_names[:2]:  # temporary: first two records
+        record = loader.load_record(record_name)
+        for detector_name, detector in detectors.items():
+            row = evaluate_record(record, detector_name, detector)
+            rows.append(row)
+    results = pd.DataFrame(rows)
+    print(results.to_string())
+
+
+if __name__ == "__main__":
+    main()
