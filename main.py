@@ -103,7 +103,7 @@ def main():
     }
     record_names = select_record_names(ALL_RECORD_NAMES, PACED_RECORD_NAMES)
     rows = []
-    for record_name in record_names[:2]:  # temporary: first two records
+    for record_name in record_names:
         record = loader.load_record(record_name)
         for detector_name, detector in detectors.items():
             row = evaluate_record(record, detector_name, detector)
