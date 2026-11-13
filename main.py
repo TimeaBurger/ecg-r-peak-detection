@@ -10,6 +10,7 @@ from rpeak_detection.detectors import (
 from rpeak_detection.evaluation import (
     evaluate_detection,
     select_beat_positions,
+    EvaluationResult
 )
 from rpeak_detection.hrv import (
     compute_rmssd,
@@ -72,6 +73,27 @@ def evaluate_record(record, detector_name, detector):
     }
 
 
+def compute_overall_metrics(results):
+    """Return sensitivity, PPV and F1 score per detector over all records."""
+    totals = results.groupby("detector_name")[
+        ["true_positives", "false_positives", "false_negatives"]
+    ].sum()
+    metric_rows = []
+    for detector_name, counts in totals.iterrows():
+        overall_result = EvaluationResult(counts["true_positives"],
+                                          counts["false_positives"],
+                                          counts["false_negatives"])
+        metric_rows.append({
+            "detector_name": detector_name,
+            "sensitivity": overall_result.compute_sensitivity(),
+            "positive_predictive_value": (
+                overall_result.compute_positive_predictive_value()
+            ),
+            "f1_score": overall_result.compute_f1_score(),
+        })
+    return pd.DataFrame(metric_rows)
+
+
 def main():
     """Evaluate both detectors on the selected records and print results."""
     loader = ECGRecordLoader()
@@ -88,6 +110,8 @@ def main():
             rows.append(row)
     results = pd.DataFrame(rows)
     print(results.to_string())
+    overall_metrics = compute_overall_metrics(results)
+    print(overall_metrics.to_string())
 
 
 if __name__ == "__main__":
