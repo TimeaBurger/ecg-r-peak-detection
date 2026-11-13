@@ -7,7 +7,8 @@ import numpy as np
 from rpeak_detection.detectors import (RPeakDetector, ThresholdBasedDetector,
                                       locate_candidate_peaks,
                                       select_signal_peaks,
-                                      refine_peak_positions, search_back)
+                                      refine_peak_positions, search_back,
+                                      is_regular_rhythm)
 
 
 class TestRPeakDetector(unittest.TestCase):
@@ -106,3 +107,22 @@ class TestRefinePeakPositions(unittest.TestCase):
                 np.array([0, 1, 5, 2, 0, 0, 3, 9, 4, 0]),
                 np.array([1]), 2), np.array([2])
         )
+
+
+class TestIsRegularRhythm(unittest.TestCase):
+
+    def test_return_true_for_regular_intervals(self):
+        """Return True if all eight intervals are within the limits."""
+        self.assertTrue(
+            is_regular_rhythm([160, 160, 160, 160, 160, 160, 160, 160], 161)
+        )
+
+    def test_return_false_for_one_outlier(self):
+        """Return False if one of the eight intervals is outside the limits."""
+        self.assertFalse(
+            is_regular_rhythm([160, 160, 160, 160, 160, 160, 160, 90], 161)
+        )
+
+    def test_return_true_for_fewer_than_eight_intervals(self):
+        """Return True if there are fewer than eight intervals."""
+        self.assertTrue(is_regular_rhythm([160, 90, 160], 161))
