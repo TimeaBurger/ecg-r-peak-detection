@@ -1,5 +1,14 @@
 """Run the R-peak detection pipeline."""
 
+from rpeak_detection.hrv import (
+    compute_sdnn,
+    compute_rmssd,
+    compute_rr_intervals)
+
+from rpeak_detection.evaluation import (
+    evaluate_detection,
+    select_beat_positions,
+)
 
 # All records of the MIT-BIH Arrhythmia Database (Moody and Mark, 2005)
 ALL_RECORD_NAMES = [
@@ -21,3 +30,36 @@ def select_record_names(all_record_names, excluded_record_names):
         if record_name not in excluded_record_names:
             selected_record_names.append(record_name)
     return selected_record_names
+
+
+def compute_hrv_metrics(beat_positions, sampling_rate):
+    """Return SDNN and RMSSD of the beat positions in milliseconds."""
+    rr_intervals = compute_rr_intervals(beat_positions, sampling_rate)
+    return {"sdnn": compute_sdnn(rr_intervals),
+            "rmssd": compute_rmssd(rr_intervals)}
+
+
+def evaluate_record(record, detector_name, detector):
+    """Return the detection and HRV results of a detector for one record."""
+    detected_positions = detector.detect_r_peaks(record.signal,
+                                                 record.sampling_rate)
+    evaluation_result = evaluate_detection(detected_positions,
+                                           record.annotated_positions,
+                                           record.annotated_symbols,
+                                           record.sampling_rate)
+    beat_positions = select_beat_positions(record.annotated_positions,
+                                           record.annotated_symbols)
+    detected_hrv = compute_hrv_metrics(detected_positions,
+                                       record.sampling_rate)
+    reference_hrv = compute_hrv_metrics(beat_positions, record.sampling_rate)
+    return {
+        "record_name": record.record_name,
+        "detector_name": detector_name,
+        "true_positives": evaluation_result.true_positives,
+        "false_positives": evaluation_result.false_positives,
+        "false_negatives": evaluation_result.false_negatives,
+        "sdnn": detected_hrv["sdnn"],
+        "rmssd": detected_hrv["rmssd"],
+        "reference_sdnn": reference_hrv["sdnn"],
+        "reference_rmssd": reference_hrv["rmssd"],
+    }
