@@ -1,8 +1,11 @@
 """Run the R-peak detection pipeline."""
 
+import os
+
 import pandas as pd
 
 from rpeak_detection.data_loader import ECGRecordLoader
+from rpeak_detection.database import save_results
 from rpeak_detection.detectors import (
     PanTompkinsDetector,
     ThresholdBasedDetector,
@@ -10,13 +13,16 @@ from rpeak_detection.detectors import (
 from rpeak_detection.evaluation import (
     evaluate_detection,
     select_beat_positions,
-    EvaluationResult
+    EvaluationResult,
 )
 from rpeak_detection.hrv import (
     compute_rmssd,
     compute_rr_intervals,
     compute_sdnn,
 )
+
+RESULTS_DIRECTORY = "results"
+DATABASE_PATH = os.path.join(RESULTS_DIRECTORY, "results.db")
 
 # All records of the MIT-BIH Arrhythmia Database (Moody and Mark, 2005)
 ALL_RECORD_NAMES = [
@@ -95,7 +101,7 @@ def compute_overall_metrics(results):
 
 
 def main():
-    """Evaluate both detectors on the selected records and print results."""
+    """Evaluate both detectors, then save and print the results."""
     loader = ECGRecordLoader()
     detectors = {
         "baseline": ThresholdBasedDetector(),
@@ -109,6 +115,8 @@ def main():
             row = evaluate_record(record, detector_name, detector)
             rows.append(row)
     results = pd.DataFrame(rows)
+    os.makedirs(RESULTS_DIRECTORY, exist_ok=True)
+    save_results(results, DATABASE_PATH)
     print(results.to_string())
     overall_metrics = compute_overall_metrics(results)
     print(overall_metrics.to_string())
