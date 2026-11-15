@@ -14,10 +14,13 @@ def save_results(results, database_path):
     engine = create_engine(f"sqlite:///{database_path}")
     results.to_sql(
         RESULTS_TABLE_NAME, engine, if_exists="replace", index=False
-        )
+    )
+    engine.dispose()
 
 
 def load_results(database_path):
     """Load the results table from an SQLite database file."""
     engine = create_engine(f"sqlite:///{database_path}")
-    return pd.read_sql_table(RESULTS_TABLE_NAME, engine)
+    results = pd.read_sql_table(RESULTS_TABLE_NAME, engine)
+    engine.dispose()
+    return results
