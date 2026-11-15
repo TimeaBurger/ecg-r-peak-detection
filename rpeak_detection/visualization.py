@@ -4,7 +4,13 @@ from bokeh.plotting import figure
 
 
 def create_hrv_scatter_plot(results, metric):
-    """Return a scatter plot of detected versus reference HRV values."""
+    """Return a scatter plot of detected versus reference HRV values.
+
+    The metric is "sdnn" or "rmssd". Each point represents one record and
+    one detector; points on the identity line indicate an exact HRV value.
+    Both axes are logarithmic, since the values range over several orders
+    of magnitude.
+    """
     plot = figure(
         title=f"{metric.upper()}: detected versus reference",
         x_axis_label=f"Reference {metric.upper()} (ms)",

@@ -1,8 +1,11 @@
-"""Load ECG recordings from a local copy of the MIT-BIH Arrhythmia
-Database and provide their signals and annotations.
+"""Load ECG recordings from a local copy of the MIT-BIH database.
+
+Provide the signal of one channel and the expert annotations of each
+recording (Moody and Mark, 2005).
 """
 
 import wfdb
+
 from rpeak_detection.exceptions import (
     RecordNotFoundError,
     ChannelNotAvailableError,
@@ -10,7 +13,11 @@ from rpeak_detection.exceptions import (
 
 
 class ECGRecord:
-    """Hold the signal and expert annotations of a single ECG recording."""
+    """Hold the signal and expert annotations of a single ECG recording.
+
+    The signal is given in millivolts, the sampling rate in Hz and the
+    annotated positions in samples.
+    """
 
     def __init__(self, record_name, signal, sampling_rate, annotated_positions,
                  annotated_symbols):
@@ -23,7 +30,12 @@ class ECGRecord:
 
 
 class ECGRecordLoader:
-    """Load ECG recordings."""
+    """Load ECG recordings of the MIT-BIH Arrhythmia Database.
+
+    The data directory and the channel are set once, so that one loader
+    can load many recordings with the same settings. The channel is
+    selected by name, since its position differs between recordings.
+    """
 
     def __init__(self, data_dir="data/mitdb", channel="MLII"):
         """Create a loader for the given data directory and channel."""
