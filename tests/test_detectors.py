@@ -29,6 +29,13 @@ class TestThresholdBasedDetector(unittest.TestCase):
         r_peak_positions = detector.detect_r_peaks(signal, 360)
         np.testing.assert_array_equal(r_peak_positions, np.array([4, 11]))
 
+    def test_skip_region_at_signal_start(self):
+        """Skip a region that is above the threshold at the first sample."""
+        signal = np.array([10, 8, 0, 0, 6, 0])
+        detector = ThresholdBasedDetector()
+        r_peak_positions = detector.detect_r_peaks(signal, 360)
+        np.testing.assert_array_equal(r_peak_positions, np.array([4]))
+
 
 class TestLocateCandidatePeaks(unittest.TestCase):
 

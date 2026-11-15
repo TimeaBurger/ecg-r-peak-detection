@@ -28,10 +28,12 @@ def locate_peaks_above_threshold(signal, threshold):
     """Locate the highest sample of each region above the threshold."""
     above_threshold = np.array(signal) > threshold
     r_peak_positions = []
+    peak_start = None
     for n in range(1, len(above_threshold)):
         if above_threshold[n] and not above_threshold[n - 1]:
             peak_start = n
-        if not above_threshold[n] and above_threshold[n - 1]:
+        if (not above_threshold[n] and above_threshold[n - 1]
+                and peak_start is not None):
             peak_end = n
             r_peak_position = (
                 np.argmax(signal[peak_start:peak_end]) + peak_start
@@ -68,7 +70,18 @@ def is_regular_rhythm(all_rr_intervals, rr_average):
 
 
 def select_signal_peaks(signal, candidate_positions, learning_samples):
-    """Select signal peaks from candidates using an adaptive threshold."""
+    """Select signal peaks from candidates using an adaptive threshold.
+
+    The signal and noise peak estimates start from the maximum and the
+    mean of the first learning_samples samples. A candidate above the
+    threshold is accepted as a signal peak and updates the signal peak
+    estimate; otherwise it updates the noise peak estimate (Pan and
+    Tompkins, 1985, Eqs. 12-14). If an RR interval exceeds 166 % of the
+    RR interval average, a missed peak is searched with half the
+    threshold (Eqs. 15-16 and 25-28). While the rhythm is irregular, the
+    threshold is halved (Eqs. 22-23 and 29). Return an array containing
+    the sample positions of the signal peaks.
+    """
     learning_phase = signal[:learning_samples]
     signal_peak_estimate = np.max(learning_phase)
     noise_peak_estimate = np.mean(learning_phase)
@@ -161,22 +174,57 @@ class RPeakDetector:
 
 
 class ThresholdBasedDetector(RPeakDetector):
-    """Represent an R-peak detector based on a fixed amplitude threshold."""
+    """Represent an R-peak detector based on a fixed amplitude threshold.
+
+    The threshold is a fraction of the maximum of the raw signal and is
+    computed once per recording. The default fraction of 0.3 follows the
+    amplitude threshold of algorithm AF1 (Friesen et al., 1990); the slope
+    criteria of AF1 are not used. The detector deliberately works without
+    filtering and without adapting the threshold, so that it serves as a
+    simple baseline for the Pan-Tompkins detector.
+    """
 
     def __init__(self, threshold_ratio=THRESHOLD_RATIO):
+        """Create a detector with the given threshold ratio.
+
+        The threshold ratio is the fraction of the signal maximum (between
+        0 and 1) that a sample must exceed to belong to an R-peak.
+        """
         self.threshold_ratio = threshold_ratio
 
     def detect_r_peaks(self, signal, sampling_rate):
-        """Detect R-peaks using a threshold relative to the signal maximum."""
+        """Detect R-peaks using a threshold relative to the signal maximum.
+
+        Return an array containing the sample positions of the highest
+        sample of each continuous segment above the threshold. The sampling
+        rate is not needed, since the detector works on the original signal.
+        """
         threshold = self.threshold_ratio * np.max(signal)
         return locate_peaks_above_threshold(signal, threshold)
 
 
 class PanTompkinsDetector(RPeakDetector):
-    """Represent an R-peak detector based on the Pan-Tompkins algorithm."""
+    """Represent an R-peak detector based on the Pan-Tompkins algorithm.
+
+    The implementation follows Pan and Tompkins (1985): band-pass filter,
+    derivative, squaring, moving-window integration and an adaptive
+    threshold on the integrated signal, including the search-back with
+    the RR interval average and the threshold halving for irregular
+    heart rhythms. The T-wave identification and the second set of
+    thresholds on the filtered signal are not implemented. The high-pass
+    filter follows Hamilton and Tompkins (1986).
+    """
 
     def detect_r_peaks(self, signal, sampling_rate):
-        """Detect R-peaks using the Pan-Tompkins algorithm."""
+        """Detect R-peaks using the Pan-Tompkins algorithm.
+
+        The signal is resampled to 200 Hz, since the filter equations are
+        defined for this sampling rate. The detected positions are shifted
+        back by the processing delay, converted to the original sampling
+        rate and moved to the highest sample of the raw signal within
+        50 ms. Return an array containing the sample positions of the
+        detected R-peaks at the original sampling rate.
+        """
         resampled_signal = resample_signal(signal, sampling_rate)
         low_passed_signal = apply_low_pass_filter(resampled_signal)
         high_passed_signal = apply_high_pass_filter(low_passed_signal)
