@@ -1,12 +1,14 @@
 # ECG R-Peak Detection
 
-A Python project that detects heartbeats in ECG recordings by implementing the Pan–Tompkins algorithm from the original paper. It benchmarks the algorithm against a threshold-based baseline on the expert-annotated MIT-BIH Arrhythmia Database and analyzes how detection errors distort clinical heart rate variability metrics.
+A Python project that detects heartbeats in ECG recordings by implementing the Pan–Tompkins algorithm from the original paper. It benchmarks the algorithm against a threshold-based baseline on the expert-annotated MIT-BIH Arrhythmia Database and analyzes how detection errors distort time-domain heart rate variability (HRV) metrics..
 
 Developed as part of the course *Programming with Python* at IU International University of Applied Sciences. Full title: *Python-Based R-Peak Detection in ECG Signals: Implementation and Evaluation of the Pan–Tompkins Algorithm on the MIT-BIH Arrhythmia Database*.
 
-Status: in development
+Status: code complete; written report in progress.
 
 ## Installation
+
+The project was tested with Python 3.13.1.
 
 1. Clone the repository:
    ```
@@ -26,6 +28,46 @@ Status: in development
    ```
    python3 -c "import wfdb; wfdb.dl_database('mitdb', 'data/mitdb')"
    ```
+
+## Data
+
+The data are taken from the MIT-BIH Arrhythmia Database, version 1.0.0, from PhysioNet. The database contains 48 records of about 30 min, sampled at 360 Hz with two channels. The MLII channel is used.
+44 records are analyzed. The four records containing paced beats (102, 104, 107, 217) are excluded, since heart rate variability is not meaningful for paced beats.
+The data are licensed under the Open Data Commons Attribution License v1.0. They are not stored in the repository and are downloaded in step 4 of the installation.
+Citation: Moody and Mark (2001); data set DOI https://doi.org/10.13026/C2F305
+
+## Usage
+
+```
+python3 main.py
+```
+
+This command evaluates both detectors on 44 records. It takes a few minutes. After that, it saves the results table to `results/results.db` and prints the results and the overall metrics in the terminal.
+
+```
+python3 plot_results.py
+```
+
+This command reads the saved results and saves the HRV scatter plots (SDNN, RMSSD) as HTML files in `results/figures/`. Run `main.py` first.
+
+## Project structure
+
+```
+ecg-r-peak-detection/
+├── main.py                 # detection, evaluation and HRV analysis
+├── plot_results.py         # HRV figures from the saved results
+├── requirements.txt
+├── rpeak_detection/
+│   ├── data_loader.py      # loading of records and annotations
+│   ├── preprocessing.py    # resampling and Pan-Tompkins filter stages
+│   ├── detectors.py        # base class, baseline and Pan-Tompkins
+│   ├── evaluation.py       # sensitivity, PPV and F1 score
+│   ├── hrv.py              # SDNN and RMSSD
+│   ├── database.py         # SQLite storage of the results
+│   ├── visualization.py    # Bokeh figures
+│   └── exceptions.py       # custom exceptions
+└── tests/                  # unit tests
+```
 
 ## Running the tests
 
