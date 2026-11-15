@@ -14,7 +14,12 @@ BEAT_SYMBOLS = {"N", "L", "R", "A", "a", "J", "S", "V", "F", "e", "j", "E",
 
 
 class EvaluationResult:
-    """Represent the evaluation result for a single ECG recording."""
+    """Represent the evaluation result for a single ECG recording.
+
+    Only the counts of true positives, false positives and false negatives
+    are stored; sensitivity, positive predictive value and F1 score are
+    computed from them, so that they always agree with the counts.
+    """
 
     def __init__(self, true_positives, false_positives, false_negatives):
         """Create a result from the given counts."""
@@ -23,7 +28,10 @@ class EvaluationResult:
         self.false_negatives = false_negatives
 
     def compute_sensitivity(self):
-        """Return the sensitivity or NaN if no beats are annotated."""
+        """Return the sensitivity TP / (TP + FN).
+
+        Return NaN if no beats are annotated.
+        """
         number_of_annotated_beats = self.true_positives + self.false_negatives
         if number_of_annotated_beats == 0:
             return float("nan")
@@ -31,7 +39,7 @@ class EvaluationResult:
             return self.true_positives / number_of_annotated_beats
 
     def compute_positive_predictive_value(self):
-        """Return the positive predictive value.
+        """Return the positive predictive value TP / (TP + FP).
 
         Return NaN if no beats are detected.
         """
@@ -42,7 +50,7 @@ class EvaluationResult:
             return self.true_positives / number_of_detected_beats
 
     def compute_f1_score(self):
-        """Return the F1 score.
+        """Return the F1 score 2 TP / (2 TP + FP + FN).
 
         Return NaN if there are neither annotated nor detected beats.
         """
@@ -55,7 +63,11 @@ class EvaluationResult:
 
 
 def select_beat_positions(annotated_positions, annotated_symbols):
-    """Return the positions of the annotations that represent beats."""
+    """Return the positions of the annotations that represent beats.
+
+    Non-beat annotations, such as rhythm changes or ventricular flutter
+    waves, are excluded.
+    """
     beat_positions = []
     for n in range(len(annotated_positions)):
         if annotated_symbols[n] in BEAT_SYMBOLS:
@@ -67,8 +79,11 @@ def evaluate_detection(detected_positions, annotated_positions,
                        annotated_symbols, sampling_rate, tolerance_ms=150):
     """Evaluate the detected R-peaks against the annotated beats.
 
-    Return an EvaluationResult with the counts of true positives,
-    false positives and false negatives.
+    Each annotated beat is matched to the nearest unused detection within
+    the tolerance window (150 ms by default, as in the bxb comparator).
+    Matched beats are true positives, unmatched beats are false negatives
+    and unused detections are false positives. The sampling rate is given
+    in Hz. Return an EvaluationResult with these counts.
     """
     beat_positions = select_beat_positions(annotated_positions,
                                            annotated_symbols)
