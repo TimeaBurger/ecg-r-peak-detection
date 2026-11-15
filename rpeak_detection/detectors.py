@@ -25,7 +25,13 @@ THRESHOLD_RATIO = 0.3  # amplitude threshold of AF1, Friesen et al. (1990)
 
 
 def locate_peaks_above_threshold(signal, threshold):
-    """Locate the highest sample of each region above the threshold."""
+    """Locate the highest sample of each region above the threshold.
+
+    A region is a run of consecutive samples above the threshold. Regions
+    that are already above the threshold at the first sample or still
+    above it at the last sample are skipped. Return an array containing
+    the sample position of the highest sample of each region.
+    """
     above_threshold = np.array(signal) > threshold
     r_peak_positions = []
     peak_start = None
@@ -43,7 +49,15 @@ def locate_peaks_above_threshold(signal, threshold):
 
 
 def locate_candidate_peaks(signal, search_radius):
-    """Locate local maxima that are highest within the search radius."""
+    """Locate local maxima that are highest within the search radius.
+
+    A candidate is a sample that is higher than both neighbors and the
+    highest sample within the search radius (in samples) on each side.
+    Pan and Tompkins (1985) define a peak as a local maximum within a
+    predefined time interval; the detector uses their refractory period
+    of 200 ms as this interval. Return an array containing the sample
+    positions of the candidates.
+    """
     candidate_positions = []
     for n in range(1, len(signal) - 1):
         if signal[n - 1] < signal[n] and signal[n] > signal[n + 1]:
@@ -58,7 +72,13 @@ def locate_candidate_peaks(signal, search_radius):
 
 
 def is_regular_rhythm(all_rr_intervals, rr_average):
-    """Return True if each of the recent RR intervals is within the limits."""
+    """Return True if each of the recent RR intervals is within the limits.
+
+    The rhythm is regular if each of the last eight RR intervals lies
+    between 92 % and 116 % of the RR interval average (Pan and Tompkins,
+    1985, Eq. 29). With fewer than eight intervals, the rhythm is assumed
+    to be regular, since there is not yet enough history to judge it.
+    """
     recent_rr_intervals = all_rr_intervals[-RR_AVERAGE_LENGTH:]
     if len(recent_rr_intervals) < RR_AVERAGE_LENGTH:
         return True
@@ -129,7 +149,10 @@ def search_back(signal, candidate_positions, previous_peak_position,
                 current_peak_position, threshold):
     """Return the highest candidate between two peaks above half the threshold.
 
-    Return None if no candidate exceeds half the threshold.
+    Only candidates between the previous and the current peak position
+    are considered. Half the threshold corresponds to the second threshold
+    of Pan and Tompkins (1985, Eq. 15). Return None if no candidate
+    exceeds half the threshold.
     """
     search_threshold = 0.5 * threshold
     best_position = None
@@ -143,7 +166,13 @@ def search_back(signal, candidate_positions, previous_peak_position,
 
 
 def refine_peak_positions(signal, peak_positions, search_radius):
-    """Move each peak position to the highest sample within the radius."""
+    """Move each peak position to the highest sample within the radius.
+
+    The search radius is given in samples, and the window is clipped at
+    the signal boundaries. The detector uses 50 ms, about half of the
+    maximum duration of a normal QRS complex (Dupre et al., 2005).
+    Return an array containing the refined sample positions.
+    """
     refined_positions = []
     for position in peak_positions:
         if position - search_radius >= 0:
@@ -159,7 +188,12 @@ def refine_peak_positions(signal, peak_positions, search_radius):
 
 
 class RPeakDetector:
-    """Represent a generic R-peak detector."""
+    """Represent a generic R-peak detector.
+
+    The class defines the common interface of all detectors. Subclasses
+    implement detect_r_peaks, so that every detector can be evaluated in
+    the same way.
+    """
 
     def detect_r_peaks(self, signal, sampling_rate):
         """Detect the R-peaks in the given ECG signal.
