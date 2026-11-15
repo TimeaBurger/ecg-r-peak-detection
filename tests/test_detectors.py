@@ -12,6 +12,7 @@ from rpeak_detection.detectors import (RPeakDetector, ThresholdBasedDetector,
 
 
 class TestRPeakDetector(unittest.TestCase):
+    """Tests for RPeakDetector."""
 
     def test_raise_not_implemented_error(self):
         """Raise NotImplementedError when the base class is used."""
@@ -21,6 +22,7 @@ class TestRPeakDetector(unittest.TestCase):
 
 
 class TestThresholdBasedDetector(unittest.TestCase):
+    """Tests for ThresholdBasedDetector."""
 
     def test_return_one_peak_per_region(self):
         """Return the highest sample of each region above the threshold."""
@@ -38,6 +40,7 @@ class TestThresholdBasedDetector(unittest.TestCase):
 
 
 class TestLocateCandidatePeaks(unittest.TestCase):
+    """Tests for locate_candidate_peaks."""
 
     def test_keep_highest_maximum_within_radius(self):
         """Return only the highest local maximum within the search radius."""
@@ -47,6 +50,7 @@ class TestLocateCandidatePeaks(unittest.TestCase):
 
 
 class TestSelectSignalPeaks(unittest.TestCase):
+    """Tests for select_signal_peaks."""
 
     def test_select_candidates_above_adaptive_threshold(self):
         """Return only the candidates above the adaptive threshold."""
@@ -79,6 +83,7 @@ class TestSelectSignalPeaks(unittest.TestCase):
 
 
 class TestSearchBack(unittest.TestCase):
+    """Tests for search_back."""
 
     def test_return_candidate_above_half_threshold(self):
         """Return the candidate above half the threshold."""
@@ -98,6 +103,7 @@ class TestSearchBack(unittest.TestCase):
 
 
 class TestRefinePeakPositions(unittest.TestCase):
+    """Tests for refine_peak_positions."""
 
     def test_move_to_highest_sample(self):
         """Move each position to the highest sample within the radius."""
@@ -117,6 +123,7 @@ class TestRefinePeakPositions(unittest.TestCase):
 
 
 class TestIsRegularRhythm(unittest.TestCase):
+    """Tests for is_regular_rhythm."""
 
     def test_return_true_for_regular_intervals(self):
         """Return True if all eight intervals are within the limits."""

@@ -11,6 +11,7 @@ from rpeak_detection.evaluation import (EvaluationResult,
 
 
 class TestEvaluationResult(unittest.TestCase):
+    """Tests for EvaluationResult."""
 
     def test_compute_sensitivity(self):
         """Return two thirds for two true positives and one false negative."""
@@ -40,6 +41,7 @@ class TestEvaluationResult(unittest.TestCase):
 
 
 class TestSelectBeatPositions(unittest.TestCase):
+    """Tests for select_beat_positions."""
 
     def test_keep_only_beat_symbols(self):
         """Return only the positions of annotations that represent beats."""
@@ -51,6 +53,7 @@ class TestSelectBeatPositions(unittest.TestCase):
 
 
 class TestEvaluateDetection(unittest.TestCase):
+    """Tests for evaluate_detection."""
 
     def test_match_nearest_detection_once(self):
         """Count each detection once and prefer the first one in a tie."""

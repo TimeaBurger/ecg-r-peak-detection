@@ -10,6 +10,7 @@ from rpeak_detection.hrv import (compute_rr_intervals,
 
 
 class TestComputeRRIntervals(unittest.TestCase):
+    """Tests for compute_rr_intervals."""
 
     def test_convert_distances_to_milliseconds(self):
         """Return 1000 and 1050 ms for distances of 360 and 378 samples."""
@@ -19,6 +20,7 @@ class TestComputeRRIntervals(unittest.TestCase):
 
 
 class TestComputeSdnn(unittest.TestCase):
+    """Tests for compute_sdnn."""
 
     def test_return_standard_deviation(self):
         """Return the square root of 250 for deviations of 20 and 10 ms."""
@@ -34,6 +36,7 @@ class TestComputeSdnn(unittest.TestCase):
 
 
 class TestComputeRmssd(unittest.TestCase):
+    """Tests for compute_rmssd."""
 
     def test_return_root_mean_square_of_differences(self):
         """Return sqrt(2900 / 3) for differences of 40, -30 and 20 ms."""

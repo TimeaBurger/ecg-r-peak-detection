@@ -1,4 +1,12 @@
-"""Run the R-peak detection pipeline."""
+"""Run the R-peak detection pipeline.
+
+Load the records of the MIT-BIH Arrhythmia Database without paced beats,
+detect R-peaks with the threshold-based baseline and the Pan-Tompkins
+detector, evaluate the detections against the expert annotations and
+compute time-domain HRV metrics from the annotated and detected beats.
+The results are saved to results/results.db and printed together with
+the overall sensitivity, positive predictive value and F1 score.
+"""
 
 import os
 
@@ -33,7 +41,7 @@ ALL_RECORD_NAMES = [
     "222", "223", "228", "230", "231", "232", "233", "234"
 ]
 
-# Records with paced beats, excluded from the evaluation
+# Records with paced beats, excluded since their HRV is not meaningful
 PACED_RECORD_NAMES = ["102", "104", "107", "217"]
 
 
@@ -47,14 +55,23 @@ def select_record_names(all_record_names, excluded_record_names):
 
 
 def compute_hrv_metrics(beat_positions, sampling_rate):
-    """Return SDNN and RMSSD of the beat positions in milliseconds."""
+    """Return SDNN and RMSSD of the beat positions in milliseconds.
+
+    The same function is used for annotated and detected beats, so that
+    differences between them are caused only by detection errors.
+    """
     rr_intervals = compute_rr_intervals(beat_positions, sampling_rate)
     return {"sdnn": compute_sdnn(rr_intervals),
             "rmssd": compute_rmssd(rr_intervals)}
 
 
 def evaluate_record(record, detector_name, detector):
-    """Return the detection and HRV results of a detector for one record."""
+    """Return the detection and HRV results of a detector for one record.
+
+    Return a dictionary with the record name, the detector name, the
+    counts of true positives, false positives and false negatives, and
+    SDNN and RMSSD of the detected and of the annotated beats.
+    """
     detected_positions = detector.detect_r_peaks(record.signal,
                                                  record.sampling_rate)
     evaluation_result = evaluate_detection(detected_positions,
@@ -80,7 +97,12 @@ def evaluate_record(record, detector_name, detector):
 
 
 def compute_overall_metrics(results):
-    """Return sensitivity, PPV and F1 score per detector over all records."""
+    """Return sensitivity, PPV and F1 score per detector over all records.
+
+    The counts of all records are added first, and the metrics are
+    computed once from the sums instead of averaging the metrics of the
+    individual records.
+    """
     totals = results.groupby("detector_name")[
         ["true_positives", "false_positives", "false_negatives"]
     ].sum()

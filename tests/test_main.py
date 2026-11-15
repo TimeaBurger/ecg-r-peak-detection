@@ -8,6 +8,7 @@ from main import compute_hrv_metrics, select_record_names
 
 
 class TestSelectRecordNames(unittest.TestCase):
+    """Tests for select_record_names."""
 
     def test_remove_excluded_record_names(self):
         """Return only the record names that are not excluded."""
@@ -18,6 +19,7 @@ class TestSelectRecordNames(unittest.TestCase):
 
 
 class TestComputeHrvMetrics(unittest.TestCase):
+    """Tests for compute_hrv_metrics."""
 
     def test_return_sdnn_and_rmssd(self):
         """Return 25 and 50 ms for intervals of 1000 and 1050 ms."""
