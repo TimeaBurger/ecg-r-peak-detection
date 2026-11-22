@@ -1,14 +1,14 @@
 # ECG R-Peak Detection
 
-A Python project that detects heartbeats in ECG recordings by implementing the Pan–Tompkins algorithm from the original paper. It benchmarks the algorithm against a threshold-based baseline on the expert-annotated MIT-BIH Arrhythmia Database and analyzes how detection errors distort time-domain heart rate variability (HRV) metrics.
+A Python project that detects heartbeats in ECG recordings by implementing the Pan–Tompkins algorithm from the original paper. It benchmarks the algorithm against a threshold-based baseline on the expert-annotated MIT-BIH Arrhythmia Database and analyzes how detection errors distort time-domain heart rate variability (HRV) measures.
 
 Developed as part of the course *Programming with Python* at IU International University of Applied Sciences. Full title: *Python-Based R-Peak Detection in ECG Signals: Implementation and Evaluation of the Pan–Tompkins Algorithm on the MIT-BIH Arrhythmia Database*.
 
-Status: code complete; written report in progress.
+Status: submitted version (tag v1.0-submission).
 
 ## Installation
 
-The project was tested with Python 3.13.1.
+The project was tested with Python 3.13.1 on macOS. On Windows, use `python` instead of `python3`, and use `.venv\Scripts\activate` to activate the virtual environment.
 
 1. Clone the repository:
    ```
@@ -34,7 +34,7 @@ The project was tested with Python 3.13.1.
 The data are taken from the MIT-BIH Arrhythmia Database, version 1.0.0, from PhysioNet. The database contains 48 records of about 30 min, sampled at 360 Hz with two channels. The MLII channel is used.
 44 records are analyzed. The four records containing paced beats (102, 104, 107, 217) are excluded, since heart rate variability is not meaningful for paced beats.
 The data are licensed under the Open Data Commons Attribution License v1.0. They are not stored in the repository and are downloaded in step 4 of the installation.
-Citation: Moody and Mark (2001); data set DOI https://doi.org/10.13026/C2F305
+Citation: Moody and Mark (2001); data set: Moody and Mark (2005), https://doi.org/10.13026/C2F305
 
 ## Usage
 
@@ -74,3 +74,4 @@ ecg-r-peak-detection/
 ```
 python3 -m unittest
 ```
+All 40 tests should pass.
