@@ -28,6 +28,7 @@ The project was tested with Python 3.13.1 on macOS. On Windows, use `python` ins
    ```
    python3 -c "import wfdb; wfdb.dl_database('mitdb', 'data/mitdb')"
    ```
+   If the download stops with a server error (e.g., 502), retry the command later; the data are also available on the PhysioNet page of the database (https://physionet.org/content/mitdb/1.0.0/).
 
 ## Data
 
